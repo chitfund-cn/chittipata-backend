@@ -55,6 +55,25 @@ app.post('/verify-otp', (req, res) => {
     res.status(401).send({ success: false, message: 'Invalid OTP' });
   }
 });
+app.post('/send-payment-email', async (req, res) => {
+  const { email, amount, tenure } = req.body;
+  if (!email || !amount || !tenure) return res.status(400).send('Missing details');
+
+  const mailOptions = {
+    from: process.env.EMAIL_USER,
+    to: email,
+    subject: 'Chittipata Payment Confirmation',
+    text: `Dear user,\n\nYour payment of ₹${amount} for a ${tenure}-month plan has been received.\n\nThank you for choosing Chittipata!`
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    res.status(200).send({ success: true, message: 'Payment email sent!' });
+  } catch (error) {
+    console.error(error);
+    res.status(500).send({ success: false, message: 'Failed to send email' });
+  }
+});
 
 // Start the server
 const PORT = process.env.PORT || 3000;
